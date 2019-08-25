@@ -1,5 +1,5 @@
 # lcd
-Golang package for driving i2c connected LCD displays
+Golang package for driving i2c connected LCD displays on a Raspberry Pi
 
 PACKAGE DOCUMENTATION
 
