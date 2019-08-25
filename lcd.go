@@ -60,8 +60,11 @@ type Lcd struct {
 	m               sync.Mutex
 }
 
-func ioctl(fd, cmd, arg uintptr) error {
-	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, fd, cmd, arg, 0, 0, 0)
+func ioctl(fd, cmd, arg uintptr) (err error) {
+	_, _, e := syscall.Syscall6(syscall.SYS_IOCTL, fd, cmd, arg, 0, 0, 0)
+	if e != 0 {
+		err = e
+	}
 	return err
 }
 
@@ -211,9 +214,11 @@ func (lcd *Lcd) print(line byte, out string) (int, error) {
 func NewLcd(rows, cols int) (*Lcd, error) {
 	i2c, err := os.OpenFile("/dev/i2c-1", os.O_RDWR, 0600)
 	if err != nil {
+		err = fmt.Errorf("NewLcd(): Can't open i2c device: %s", err)
 		return nil, err
 	}
 	if err := ioctl(i2c.Fd(), i2c_SLAVE, uintptr(i2c_ADDR)); err != nil {
+		err = fmt.Errorf("NewLcd(): ioctl() error: %s", err)
 		return nil, err
 	}
 

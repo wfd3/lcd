@@ -1,7 +1,7 @@
 package main
 
 import (
-	"lcd"
+	"github.com/wfd3/lcd"
 	"time"
 )
 
