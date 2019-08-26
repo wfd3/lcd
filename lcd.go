@@ -1,3 +1,5 @@
+// +build arm
+
 // LCD driver for i2c connected LCDs
 package lcd
 
