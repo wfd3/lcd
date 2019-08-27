@@ -7,10 +7,12 @@ import (
 
 func main() {
 
-	l, err := lcd.NewLcd(2, 16)
-        if err != nil {
+	l := lcd.NewLcd(2, 16)
+        err := l.EnableHW()
+	if err != nil {
 		panic(err)
         }
+	
         l.On()
         l.BacklightOn()
         l.Clear()

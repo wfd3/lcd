@@ -71,6 +71,9 @@ func ioctl(fd, cmd, arg uintptr) (err error) {
 }
 
 func (lcd *Lcd) writeI2C(b byte) (int, error) {
+	if lcd.i2c == nil {
+		panic("Attempt to write to LCD I2C without calling lcd.Enable()")
+	}
 	var buf [1]byte
 
 	buf[0] = b
@@ -213,24 +216,34 @@ func (lcd *Lcd) print(line byte, out string) (int, error) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // NewLcd creates a new LCD driver, and sets the dimensions of the display
-func NewLcd(rows, cols int) (*Lcd, error) {
-	i2c, err := os.OpenFile("/dev/i2c-1", os.O_RDWR, 0600)
-	if err != nil {
-		err = fmt.Errorf("NewLcd(): Can't open i2c device: %s", err)
-		return nil, err
-	}
-	if err := ioctl(i2c.Fd(), i2c_SLAVE, uintptr(i2c_ADDR)); err != nil {
-		err = fmt.Errorf("NewLcd(): ioctl() error: %s", err)
-		return nil, err
-	}
+func NewLcd(rows, cols int) *Lcd {
 
 	lcd := Lcd{
 		on:   false,
-		i2c:  i2c,
+		i2c:  nil,
 		cols: cols,
 		rows: rows,
 	}
+	return &lcd
+}
+
+// Enable enables the i2c hardware and LCD driver hardware.  This must be called before any other LCD
+// function is called.
+func (lcd *Lcd) EnableHW() error {
+	i2c, err := os.OpenFile("/dev/i2c-1", os.O_RDWR, 0600)
+	if err != nil {
+		err = fmt.Errorf("NewLcd(): Can't open i2c device: %s", err)
+		return nil
+	}
+	if err := ioctl(i2c.Fd(), i2c_SLAVE, uintptr(i2c_ADDR)); err != nil {
+		err = fmt.Errorf("NewLcd(): ioctl() error: %s", err)
+		return nil
+	}
+
 	// Activate LCD
+
+	lcd.i2c = i2c
+	
 	var data byte
 	data = pinInterpret(_OFFSET_D4, data, true)
 	data = pinInterpret(_OFFSET_D5, data, true)
@@ -251,7 +264,7 @@ func NewLcd(rows, cols int) (*Lcd, error) {
 	lcd.command(_CMD_Clear_Display)
 	lcd.command(_CMD_Entry_Mode | _OPT_Increment | _OPT_Display_Shift)
 
-	return &lcd, nil
+	return nil
 }
 
 // On enables the LCD function set to operate.

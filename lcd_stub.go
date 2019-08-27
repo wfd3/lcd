@@ -11,7 +11,7 @@ type Lcd struct {
 }
 
 // NewLcd creates a new LCD driver, and sets the dimensions of the display
-func NewLcd(rows, cols int) (*Lcd, error) {
+func NewLcd(rows, cols int) *Lcd {
 	lcd := Lcd{
 		on:   false,
 		cols: cols,
@@ -19,6 +19,12 @@ func NewLcd(rows, cols int) (*Lcd, error) {
 	}
 
 	return &lcd, nil
+}
+
+// Enable enables the i2c hardware and LCD driver hardware.  This must be called before any
+// other LCD function is called.
+func (lcd *Lcd) EnableHW() error {
+	return nil
 }
 
 // On enables the LCD function set to operate.
